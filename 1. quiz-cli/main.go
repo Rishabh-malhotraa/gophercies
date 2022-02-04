@@ -36,7 +36,7 @@ var (
 )
 
 func init() {
-	filePath = flag.String("csv", "quiz-cli/data.csv", "a csv file in the format of questions, answer")
+	filePath = flag.String("csv", "1. quiz-cli/data.csv", "a csv file in the format of questions, answer")
 	timeout = flag.Int("time", 30, "the time limit for the quiz in seconds")
 	flag.Parse() // this would parse all the flags
 }

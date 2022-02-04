@@ -1,0 +1,4 @@
+[
+  {"path": "/ca", "url":"https://caucus-app.herokuapp.com/"},
+  {"path": "/vt", "url":"https://vitaa-app.netlify.app/"}
+]

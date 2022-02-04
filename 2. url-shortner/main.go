@@ -1,42 +1,81 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	urlshort "url-shortner/mapHandler"
 )
 
-func main() {
-	mux := defaultMux()
-
-	// Build the MapHandler using the mux as the fallback
-	pathsToUrls := map[string]string{
-		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
-		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
-	}
-	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
-
-	// Build the YAMLHandler using the mapHandler as the
-	// fallback
-	yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+type Config struct {
+	pathToJSON string
+	pathToYAML string
+	// pathToBoltDB string
 }
 
-func defaultMux() *http.ServeMux {
+func main() {
+	config := getConfig()
+
+	mux := makeDefaultMux()
+
+	yamlBytes := getFileBytes(config.pathToYAML)
+	jsonBytes := getFileBytes(config.pathToJSON)
+
+	makeMapHandler(mux)
+	makeYAMLHandler(yamlBytes, mux)
+	makeJSONHandler(jsonBytes, mux)
+
+	fmt.Println("Starting the server on :8080")
+	http.ListenAndServe(":8080", mux)
+}
+
+func getConfig() *Config {
+	config := Config{}
+
+	config.pathToJSON = *flag.String("json-path", "./storage/url.json", "file location of json containing url redirections")
+	config.pathToYAML = *flag.String("yaml-path", "./storage/url.yaml", "file location of yaml containing url redirections")
+	// config.pathToBoltDB = *flag.String("boltdb-path", "./storage/bolt.db", "file location of boltdb containing url redirections")
+	flag.Parse()
+	return &config
+}
+
+func getFileBytes(path string) []byte {
+	bytes, err := ioutil.ReadFile(path) // better than opening a file since you dont have to take care about closing that givern file too
+	if err != nil {
+		return nil
+	}
+	return bytes
+}
+
+func indexController(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Hello, world!")
+}
+
+func makeDefaultMux() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", hello)
+	mux.HandleFunc("/", indexController)
 	return mux
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello, world!")
+func makeMapHandler(mux *http.ServeMux) {
+	pathsToUrls := map[string]string{
+		"/lin": "https://www.linkedin.com/in/rishabh-malhotra-4536a418b/",
+		"/mt":  "https://monkeytype.com/",
+	}
+	urlshort.MapHandler(pathsToUrls, mux)
+}
+
+func makeYAMLHandler(yamlBytes []byte, fallbackHandler *http.ServeMux) {
+	err := urlshort.YAMLHandler(yamlBytes, fallbackHandler)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func makeJSONHandler(jsonBytes []byte, fallbackHandler *http.ServeMux) {
+	err := urlshort.JSONHandler(jsonBytes, fallbackHandler)
+	if err != nil {
+		panic(err)
+	}
 }

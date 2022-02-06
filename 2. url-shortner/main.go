@@ -11,7 +11,6 @@ import (
 type Config struct {
 	pathToJSON string
 	pathToYAML string
-	// pathToBoltDB string
 }
 
 func main() {
@@ -35,7 +34,6 @@ func getConfig() *Config {
 
 	config.pathToJSON = *flag.String("json-path", "./storage/url.json", "file location of json containing url redirections")
 	config.pathToYAML = *flag.String("yaml-path", "./storage/url.yaml", "file location of yaml containing url redirections")
-	// config.pathToBoltDB = *flag.String("boltdb-path", "./storage/bolt.db", "file location of boltdb containing url redirections")
 	flag.Parse()
 	return &config
 }
@@ -59,9 +57,9 @@ func makeDefaultMux() *http.ServeMux {
 }
 
 func makeMapHandler(mux *http.ServeMux) {
-	pathsToUrls := map[string]string{
-		"/lin": "https://www.linkedin.com/in/rishabh-malhotra-4536a418b/",
-		"/mt":  "https://monkeytype.com/",
+	pathsToUrls := []urlshort.MapItems{
+		{Path: "/lin", Url: "https://www.linkedin.com/in/rishabh-malhotra-4536a418b/"},
+		{Path: "/mt", Url: "https://monkeytype.com/"},
 	}
 	urlshort.MapHandler(pathsToUrls, mux)
 }

@@ -11,7 +11,7 @@ type urlMap struct {
 	cache map[string]string
 }
 
-type mapItems struct {
+type MapItems struct {
 	Path string
 	Url  string
 }
@@ -25,41 +25,33 @@ func (*urlMap) redirect(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func MapHandler(pathsToUrls map[string]string, mux *http.ServeMux) {
-	for k, v := range pathsToUrls {
-		globalMap.cache[k] = v
-		mux.HandleFunc(k, globalMap.redirect)
+func MapHandler(items []MapItems, mux *http.ServeMux) {
+	for _, item := range items {
+		globalMap.cache[item.Path] = item.Url
+		mux.HandleFunc(item.Path, globalMap.redirect)
 	}
 }
 
-func YAMLHandler(yml []byte, mux *http.ServeMux) error {
-	var items []mapItems
-	err := yaml.Unmarshal(yml, &items)
+func YAMLHandler(buffer []byte, mux *http.ServeMux) error {
+	var items []MapItems
+	err := yaml.Unmarshal(buffer, &items)
 
 	if err != nil {
 		return err
 	}
 
-	for _, item := range items {
-		globalMap.cache[item.Path] = item.Url
-		mux.HandleFunc(item.Path, globalMap.redirect)
-	}
-
+	MapHandler(items, mux)
 	return nil
 }
 
 func JSONHandler(buffer []byte, mux *http.ServeMux) error {
-	var items []mapItems
+	var items []MapItems
 	err := json.Unmarshal(buffer, &items)
 
 	if err != nil {
 		return err
 	}
 
-	for _, item := range items {
-		globalMap.cache[item.Path] = item.Url
-		mux.HandleFunc(item.Path, globalMap.redirect)
-	}
-
+	MapHandler(items, mux)
 	return nil
 }

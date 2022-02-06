@@ -1,20 +1,21 @@
 package main
 
-import (
-	"log"
-	"net/http"
-)
+import "fmt"
 
-func rootController(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-	w.Write([]byte("<h1> Welcome to my server </h1>"))
+type Profile struct {
+	Name  string
+	Major string
+	Language
+}
+
+type Language struct {
+	Compiled    string
+	Interpreted string
 }
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", rootController)
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	var x = 1
+
+	a := Profile{"Rishabh", "COMPSCI", Language{"C++", "JAVASCRIPT"}}
+	fmt.Println(a.Compiled, a.Name, x)
 }
